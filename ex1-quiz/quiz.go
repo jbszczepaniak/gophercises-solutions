@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bufio"
 	"encoding/csv"
+	"fmt"
 	"io"
 	"os"
 )
@@ -26,11 +28,30 @@ func parseProblems(file io.Reader) ([]Problem, error) {
 	return problems, nil
 }
 
+func ask(problems []Problem, sdtin io.Reader, stdout io.Writer) int {
+	correct := 0
+	scanner := bufio.NewScanner(sdtin)
+	for _, p := range problems {
+		fmt.Fprintf(stdout, "%s\n", p.question)
+		scanner.Scan()
+		if scanner.Text() == p.answer {
+			correct++
+		}
+	}
+	return correct
+}
+
 func main() {
 	file, err := os.Open("problems.csv")
 	defer file.Close()
 	if err != nil {
 		panic(err)
 	}
-	parseProblems(file)
+	problems, err := parseProblems(file)
+	if err != nil {
+		panic(err)
+	}
+	correctAnswers := ask(problems, os.Stdin, os.Stdout)
+	fmt.Printf("You answered correctly for %d/%d problems", correctAnswers, len(problems))
+
 }

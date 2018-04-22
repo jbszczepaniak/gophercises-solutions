@@ -7,6 +7,8 @@ import (
 )
 
 func TestParseProblems(t *testing.T) {
+	t.Parallel()
+
 	cases := []struct {
 		content  string
 		expected []Problem
@@ -31,6 +33,46 @@ func TestParseProblems(t *testing.T) {
 		}
 		if !reflect.DeepEqual(problems, c.expected) {
 			t.Fatalf("want %v, got %v", c.expected, problems)
+		}
+	}
+}
+
+func TestAsk(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		problems []Problem
+		answers  string
+		correct  int
+	}{
+		{
+			[]Problem{{"1+1", "2"}, {"1+2", "3"}},
+			"2\n3\n",
+			2,
+		},
+		{
+			[]Problem{{"1+1", "2"}, {"1+2", "3"}},
+			"",
+			0,
+		},
+		{
+			[]Problem{{"1+1", "2"}, {"1+2", "3"}},
+			"2\n",
+			1,
+		},
+		{
+			[]Problem{{"niechęć?", "tak"}, {"łaskotać?", "nie"}},
+			"tak\nnie\n",
+			2,
+		},
+	}
+
+	for _, c := range cases {
+		out := bytes.Buffer{}
+		in := bytes.NewBufferString(c.answers)
+		correctAnswers := ask(c.problems, in, &out)
+		if correctAnswers != c.correct {
+			t.Errorf("want %d correct answers, have %d", c.correct, correctAnswers)
 		}
 	}
 }
