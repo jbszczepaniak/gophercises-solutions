@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"encoding/csv"
+	"flag"
 	"fmt"
 	"io"
 	"os"
@@ -41,8 +42,15 @@ func ask(problems []Problem, sdtin io.Reader, stdout io.Writer) int {
 	return correct
 }
 
+var problemsFile string
+
+func init() {
+	flag.StringVar(&problemsFile, "file", "problems.csv", "file with containing questions/answers")
+	flag.Parse()
+}
+
 func main() {
-	file, err := os.Open("problems.csv")
+	file, err := os.Open(problemsFile)
 	defer file.Close()
 	if err != nil {
 		panic(err)
@@ -52,6 +60,6 @@ func main() {
 		panic(err)
 	}
 	correctAnswers := ask(problems, os.Stdin, os.Stdout)
-	fmt.Printf("You answered correctly for %d/%d problems", correctAnswers, len(problems))
+	fmt.Printf("You answered correctly for %d/%d problems\n", correctAnswers, len(problems))
 
 }
