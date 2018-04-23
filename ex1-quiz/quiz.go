@@ -41,29 +41,15 @@ func main() {
 		problems = shuffle(problems)
 	}
 
-	correct := make(chan bool)
-	total := 0
+	correctAnswer := make(chan bool)
 
 	fmt.Println("If you are ready press enter")
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Scan()
 
-	timer := time.NewTimer(timeout)
-	go ask(problems, os.Stdin, os.Stdout, correct)
+	go ask(problems, os.Stdin, os.Stdout, correctAnswer)
+	total := sumPoints(correctAnswer, time.NewTimer(timeout))
 
-	for n := 1; n > 0; {
-		select {
-		case v, ok := <-correct:
-			if !ok {
-				n--
-			}
-			if v {
-				total++
-			}
-		case <-timer.C:
-			n--
-		}
-	}
 	fmt.Printf("You answered correctly %d/%d problems\n", total, len(problems))
 }
 
@@ -107,4 +93,22 @@ func shuffle(slice []Problem) []Problem {
 		ret[i] = slice[randIndex]
 	}
 	return ret
+}
+
+func sumPoints(correct chan bool, timer *time.Timer) int {
+	total := 0
+	for n := 1; n > 0; {
+		select {
+		case v, ok := <-correct:
+			if !ok {
+				n--
+			}
+			if v {
+				total++
+			}
+		case <-timer.C:
+			n--
+		}
+	}
+	return total
 }
