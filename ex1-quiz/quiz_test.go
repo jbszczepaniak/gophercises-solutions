@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestParseProblems(t *testing.T) {
+func TestParseProblemsParsesToProblemsSlice(t *testing.T) {
 	t.Parallel()
 
 	cases := []struct {
@@ -37,7 +37,7 @@ func TestParseProblems(t *testing.T) {
 	}
 }
 
-func TestAsk(t *testing.T) {
+func TestAskSendsToChannelWhenCorrectAnswer(t *testing.T) {
 	t.Parallel()
 
 	cases := []struct {
@@ -101,6 +101,6 @@ func TestShuffleChangesOrder(t *testing.T) {
 		}
 	}
 	if !isShuffled {
-		t.Errorf("expected slice to be shuffled but it didn't")
+		t.Errorf("expected slice to be shuffled but it wasn't")
 	}
 }
