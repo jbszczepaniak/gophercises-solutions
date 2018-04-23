@@ -70,9 +70,16 @@ func TestAsk(t *testing.T) {
 	for _, c := range cases {
 		out := bytes.Buffer{}
 		in := bytes.NewBufferString(c.answers)
-		correctAnswers := ask(c.problems, in, &out)
-		if correctAnswers != c.correct {
-			t.Errorf("want %d correct answers, have %d", c.correct, correctAnswers)
+		correctAnswer := make(chan bool)
+
+		go ask(c.problems, in, &out, correctAnswer)
+		totalCorrect := 0
+		for range correctAnswer {
+			totalCorrect++
+		}
+
+		if totalCorrect != c.correct {
+			t.Errorf("want %d correct answers, have %d", c.correct, totalCorrect)
 		}
 	}
 }
