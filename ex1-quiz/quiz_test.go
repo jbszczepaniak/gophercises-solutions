@@ -83,3 +83,24 @@ func TestAsk(t *testing.T) {
 		}
 	}
 }
+
+func TestShuffleChangesOrder(t *testing.T) {
+	seed = 2213123 // Some seed value that gives changed order of slice elements
+	problems := []Problem{
+		{question: "?", answer: "!"},
+		{question: "yes?", answer: "no!"},
+		{question: "2+2", answer: "4"},
+	}
+	isShuffled := false
+	shuffled := shuffle(problems)
+
+	for i := 0; i < len(shuffled); i++ {
+		if problems[i] != shuffled[i] {
+			isShuffled = true
+			return
+		}
+	}
+	if !isShuffled {
+		t.Errorf("expected slice to be shuffled but it didn't")
+	}
+}
