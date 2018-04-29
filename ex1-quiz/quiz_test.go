@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"reflect"
 	"testing"
+	"time"
 )
 
 func TestParseProblemsParsesToProblemsSlice(t *testing.T) {
@@ -103,4 +104,40 @@ func TestShuffleChangesOrder(t *testing.T) {
 	if !isShuffled {
 		t.Errorf("expected slice to be shuffled but it wasn't")
 	}
+}
+
+func TestSumPoints(t *testing.T) {
+	t.Run("sums only true answers", func(t *testing.T) {
+		answers := make(chan bool)
+		timeIsUp := make(chan time.Time)
+		go func() {
+			answers <- true
+			answers <- true
+			answers <- false
+			close(answers)
+		}()
+		got := sumPoints(answers, timeIsUp)
+		want := 2
+
+		if got != want {
+			t.Errorf("want %d correct answers, got %d", want, got)
+		}
+	})
+
+	t.Run("stops summing when time is up", func(t *testing.T) {
+		answers := make(chan bool)
+		timeIsUp := make(chan time.Time)
+		go func() {
+			answers <- true
+			timeIsUp <- time.Now()
+			answers <- true
+			close(answers)
+		}()
+		got := sumPoints(answers, timeIsUp)
+		want := 1
+
+		if got != want {
+			t.Errorf("want %d correct answers, got %d", want, got)
+		}
+	})
 }

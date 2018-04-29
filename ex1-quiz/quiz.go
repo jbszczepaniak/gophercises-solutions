@@ -47,8 +47,9 @@ func main() {
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Scan()
 
+	timer := time.NewTimer(timeout)
 	go ask(problems, os.Stdin, os.Stdout, correctAnswer)
-	total := sumPoints(correctAnswer, time.NewTimer(timeout))
+	total := sumPoints(correctAnswer, timer.C)
 
 	fmt.Printf("You answered correctly %d/%d problems\n", total, len(problems))
 }
@@ -95,7 +96,7 @@ func shuffle(slice []Problem) []Problem {
 	return ret
 }
 
-func sumPoints(correct chan bool, timer *time.Timer) int {
+func sumPoints(correct chan bool, timeIsUp <-chan time.Time) int {
 	total := 0
 	for n := 1; n > 0; {
 		select {
@@ -106,7 +107,7 @@ func sumPoints(correct chan bool, timer *time.Timer) int {
 			if v {
 				total++
 			}
-		case <-timer.C:
+		case <-timeIsUp:
 			n--
 		}
 	}
