@@ -11,14 +11,7 @@ func TestMapHandler(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			fallback := &SpyHandler{}
 			handler, _ := MapHandler(pathsToUrls, fallback)
-			request, _ := http.NewRequest(http.MethodGet, c.path, nil)
-			response := httptest.NewRecorder()
-
-			handler(response, request)
-
-			assertCode(t, c.code, response)
-			assertLocation(t, c.location, response)
-			assertFallbackCount(t, c.fallbackCalls, fallback.calls)
+			testHandler(t, handler, c, fallback)
 		})
 	}
 }
@@ -35,15 +28,7 @@ func TestYAMLHandler(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			fallback := &SpyHandler{}
 			handler, _ := YAMLHandler([]byte(yamlMapping), fallback)
-
-			request, _ := http.NewRequest(http.MethodGet, c.path, nil)
-			response := httptest.NewRecorder()
-
-			handler(response, request)
-
-			assertCode(t, c.code, response)
-			assertLocation(t, c.location, response)
-			assertFallbackCount(t, c.fallbackCalls, fallback.calls)
+			testHandler(t, handler, c, fallback)
 		})
 	}
 }
@@ -60,15 +45,7 @@ func TestJSONHandler(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			fallback := &SpyHandler{}
 			handler, _ := JSONHandler([]byte(jsonMapping), fallback)
-
-			request, _ := http.NewRequest(http.MethodGet, c.path, nil)
-			response := httptest.NewRecorder()
-
-			handler(response, request)
-
-			assertCode(t, c.code, response)
-			assertLocation(t, c.location, response)
-			assertFallbackCount(t, c.fallbackCalls, fallback.calls)
+			testHandler(t, handler, c, fallback)
 		})
 	}
 }
@@ -90,13 +67,15 @@ var jsonMapping = `
 ]
 `
 
-var cases = []struct {
+type testCase struct {
 	name          string
 	path          string
 	code          int
 	location      string
 	fallbackCalls int
-}{
+}
+
+var cases = []testCase{
 	{
 		name:          "for known path user is redirected",
 		path:          "short1",
@@ -137,4 +116,17 @@ func assertFallbackCount(t *testing.T, want int, got int) {
 	if want != got {
 		t.Errorf("want %d, got %d fallback calls", want, got)
 	}
+}
+
+func testHandler(t *testing.T, h http.HandlerFunc, c testCase, fallback *SpyHandler) {
+	t.Helper()
+
+	request, _ := http.NewRequest(http.MethodGet, c.path, nil)
+	response := httptest.NewRecorder()
+
+	h(response, request)
+
+	assertCode(t, c.code, response)
+	assertLocation(t, c.location, response)
+	assertFallbackCount(t, c.fallbackCalls, fallback.calls)
 }
