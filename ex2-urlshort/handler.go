@@ -46,14 +46,7 @@ func YAMLHandler(yml []byte, fallback http.Handler) (http.HandlerFunc, error) {
 	if err != nil {
 		return nil, err
 	}
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		url, ok := findURL(r.URL.String(), mappings)
-		if ok {
-			http.Redirect(w, r, url, http.StatusFound)
-		} else {
-			fallback.ServeHTTP(w, r)
-		}
-	}), nil
+	return Handler(mappings, fallback)
 }
 
 func JSONHandler(jsn []byte, fallback http.Handler) (http.HandlerFunc, error) {
@@ -62,6 +55,10 @@ func JSONHandler(jsn []byte, fallback http.Handler) (http.HandlerFunc, error) {
 	if err != nil {
 		return nil, err
 	}
+	return Handler(mappings, fallback)
+}
+
+func Handler(mappings []urlPath, fallback http.Handler) (http.HandlerFunc, error) {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		url, ok := findURL(r.URL.String(), mappings)
 		if ok {
