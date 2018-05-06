@@ -6,6 +6,31 @@ import (
 	"testing"
 )
 
+type testCase struct {
+	name          string
+	path          string
+	code          int
+	location      string
+	fallbackCalls int
+}
+
+var cases = []testCase{
+	{
+		name:          "for known path user is redirected",
+		path:          "short1",
+		code:          http.StatusFound,
+		location:      pathsToUrls["short1"],
+		fallbackCalls: 0,
+	},
+	{
+		name:          "for not known path fallback is used",
+		path:          "not known",
+		code:          http.StatusOK,
+		location:      "",
+		fallbackCalls: 1,
+	},
+}
+
 func TestMapHandler(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
@@ -66,31 +91,6 @@ var jsonMapping = `
 	}
 ]
 `
-
-type testCase struct {
-	name          string
-	path          string
-	code          int
-	location      string
-	fallbackCalls int
-}
-
-var cases = []testCase{
-	{
-		name:          "for known path user is redirected",
-		path:          "short1",
-		code:          http.StatusFound,
-		location:      pathsToUrls["short1"],
-		fallbackCalls: 0,
-	},
-	{
-		name:          "for not known path fallback is used",
-		path:          "not known",
-		code:          http.StatusOK,
-		location:      "",
-		fallbackCalls: 1,
-	},
-}
 
 type SpyHandler struct {
 	calls int
