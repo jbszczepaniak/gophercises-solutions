@@ -10,7 +10,7 @@ func TestMapHandler(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			fallback := &SpyHandler{}
-			handler := MapHandler(pathsToUrls, fallback)
+			handler, _ := MapHandler(pathsToUrls, fallback)
 			request, _ := http.NewRequest(http.MethodGet, c.path, nil)
 			response := httptest.NewRecorder()
 
