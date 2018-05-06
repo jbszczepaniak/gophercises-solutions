@@ -8,7 +8,7 @@ import (
 )
 
 func MapHandler(pathsToUrls map[string]string, fallback http.Handler) (http.HandlerFunc, error) {
-	return Handler(pathsToUrls, fallback)
+	return RedirectOrFallbackHandler(pathsToUrls, fallback)
 }
 
 func YAMLHandler(yml []byte, fallback http.Handler) (http.HandlerFunc, error) {
@@ -17,7 +17,7 @@ func YAMLHandler(yml []byte, fallback http.Handler) (http.HandlerFunc, error) {
 	if err != nil {
 		return nil, err
 	}
-	return Handler(mappings, fallback)
+	return RedirectOrFallbackHandler(mappings, fallback)
 }
 
 func JSONHandler(jsn []byte, fallback http.Handler) (http.HandlerFunc, error) {
@@ -26,10 +26,12 @@ func JSONHandler(jsn []byte, fallback http.Handler) (http.HandlerFunc, error) {
 	if err != nil {
 		return nil, err
 	}
-	return Handler(mappings, fallback)
+	return RedirectOrFallbackHandler(mappings, fallback)
 }
 
-func Handler(mappings interface{}, fallback http.Handler) (http.HandlerFunc, error) {
+// RedirectOrFallbackHandler redirect to path found in mappings if URL of request
+// is found in mapping, otherwise fallbacks.
+func RedirectOrFallbackHandler(mappings interface{}, fallback http.Handler) (http.HandlerFunc, error) {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		url, ok := findURL(r.URL.String(), mappings)
 		if ok {
