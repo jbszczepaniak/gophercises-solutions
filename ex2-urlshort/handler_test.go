@@ -6,6 +6,73 @@ import (
 	"testing"
 )
 
+func TestMapHandler(t *testing.T) {
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			fallback := &SpyHandler{}
+			handler := MapHandler(pathsToUrls, fallback)
+			request, _ := http.NewRequest(http.MethodGet, c.path, nil)
+			response := httptest.NewRecorder()
+
+			handler(response, request)
+
+			assertCode(t, c.code, response)
+			assertLocation(t, c.location, response)
+			assertFallbackCount(t, c.fallbackCalls, fallback.calls)
+		})
+	}
+}
+
+func TestYAMLHandler(t *testing.T) {
+	t.Run("returns error if yaml unmarshalling did not succed", func(t *testing.T) {
+		_, err := YAMLHandler([]byte("garbage yaml"), nil)
+		if err == nil {
+			t.Errorf("expected err to be returned but it didn't")
+		}
+	})
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			fallback := &SpyHandler{}
+			handler, _ := YAMLHandler([]byte(yamlMapping), fallback)
+
+			request, _ := http.NewRequest(http.MethodGet, c.path, nil)
+			response := httptest.NewRecorder()
+
+			handler(response, request)
+
+			assertCode(t, c.code, response)
+			assertLocation(t, c.location, response)
+			assertFallbackCount(t, c.fallbackCalls, fallback.calls)
+		})
+	}
+}
+
+func TestJSONHandler(t *testing.T) {
+	t.Run("returns error if yaml unmarshalling did not succed", func(t *testing.T) {
+		_, err := JSONHandler([]byte("garbage json"), nil)
+		if err == nil {
+			t.Errorf("expected err to be returned but it didn't")
+		}
+	})
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			fallback := &SpyHandler{}
+			handler, _ := JSONHandler([]byte(jsonMapping), fallback)
+
+			request, _ := http.NewRequest(http.MethodGet, c.path, nil)
+			response := httptest.NewRecorder()
+
+			handler(response, request)
+
+			assertCode(t, c.code, response)
+			assertLocation(t, c.location, response)
+			assertFallbackCount(t, c.fallbackCalls, fallback.calls)
+		})
+	}
+}
+
 var pathsToUrls = map[string]string{
 	"short1": "http://short1.com",
 }
@@ -13,6 +80,14 @@ var pathsToUrls = map[string]string{
 var yamlMapping = `
 - path: short1
   url: http://short1.com
+`
+var jsonMapping = `
+[
+	{
+		"path": "short1",
+		"url": "http://short1.com"
+	}
+]
 `
 
 var cases = []struct {
@@ -61,47 +136,5 @@ func assertLocation(t *testing.T, want string, response *httptest.ResponseRecord
 func assertFallbackCount(t *testing.T, want int, got int) {
 	if want != got {
 		t.Errorf("want %d, got %d fallback calls", want, got)
-	}
-}
-
-func TestMapHandler(t *testing.T) {
-	for _, c := range cases {
-		t.Run(c.name, func(t *testing.T) {
-			fallback := &SpyHandler{}
-			handler := MapHandler(pathsToUrls, fallback)
-			request, _ := http.NewRequest(http.MethodGet, c.path, nil)
-			response := httptest.NewRecorder()
-
-			handler(response, request)
-
-			assertCode(t, c.code, response)
-			assertLocation(t, c.location, response)
-			assertFallbackCount(t, c.fallbackCalls, fallback.calls)
-		})
-	}
-}
-
-func TestYamlHandler(t *testing.T) {
-	t.Run("returns error if yaml unmarshalling did not succed", func(t *testing.T) {
-		_, err := YAMLHandler([]byte("garbage yaml"), nil)
-		if err == nil {
-			t.Errorf("expected err to be returned but it didn't")
-		}
-	})
-
-	for _, c := range cases {
-		t.Run(c.name, func(t *testing.T) {
-			fallback := &SpyHandler{}
-			handler, _ := YAMLHandler([]byte(yamlMapping), fallback)
-
-			request, _ := http.NewRequest(http.MethodGet, c.path, nil)
-			response := httptest.NewRecorder()
-
-			handler(response, request)
-
-			assertCode(t, c.code, response)
-			assertLocation(t, c.location, response)
-			assertFallbackCount(t, c.fallbackCalls, fallback.calls)
-		})
 	}
 }
