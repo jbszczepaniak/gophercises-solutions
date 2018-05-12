@@ -1,0 +1,8 @@
+<h1>{{ .Title }}</h1>
+{{ range $i1, $par := .Story }}
+<p>{{ $par }}</p>{{ end }}
+</br>
+<ul>
+{{ range $i, $value := .Options }}
+<li><a href='/{{$value.Arc}}'>{{$value.Text}}</li>{{ end }}
+</ul> 

@@ -3,9 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"html/template"
-	"io/ioutil"
 	"net/http"
-	"os"
 )
 
 type Story struct {
@@ -19,23 +17,36 @@ type Story struct {
 
 type Stories map[string]Story
 
-func NewCyoaHandler(stories string) (*cyoaHandler, error) {
+func NewCyoaHandler(stories, tmplPath string) (*cyoaHandler, error) {
 	var unmarshalled Stories
 	err := json.Unmarshal([]byte(stories), &unmarshalled)
 	if err != nil {
 		return nil, err
 	}
-	return &cyoaHandler{stories: unmarshalled, curr: "intro"}, err
+	templ, err := template.ParseFiles(tmplPath)
+	if err != nil {
+		return nil, err
+	}
+	return &cyoaHandler{stories: unmarshalled, templ: templ}, err
 }
 
 type cyoaHandler struct {
 	stories Stories
-	curr    string
+	templ   *template.Template
 }
 
 func (h *cyoaHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	file, _ := os.Open("page_template.html")
-	tmplContent, _ := ioutil.ReadAll(file)
-	templ, _ := template.New("page").Parse(string(tmplContent))
-	templ.Execute(w, h.stories[h.curr])
+	name := r.URL.Path[1:]
+	if name == "" {
+		name = "intro"
+	}
+
+	story, ok := h.stories[name]
+	if ok {
+		h.templ.Execute(w, story)
+		return
+	}
+
+	w.WriteHeader(http.StatusNotFound)
+	w.Write([]byte("Chapter not found"))
 }
